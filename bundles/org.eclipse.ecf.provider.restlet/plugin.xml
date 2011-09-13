@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+   <extension
+         point="org.eclipse.ecf.identity.namespace">
+      <namespace
+            class="org.eclipse.ecf.internal.provider.restlet.identity.RestletNamespace"
+            name="ecf.namespace.restlet">
+      </namespace>
+   </extension>
+   <extension
+         point="org.eclipse.ecf.containerFactory">
+      <containerFactory
+            class="org.eclipse.ecf.internal.provider.restlet.container.RestletHostContainerInstantiator"
+            hidden="false"
+            name="ecf.container.restlet.host"
+            server="true">
+      </containerFactory>
+   </extension>
+   <extension
+         point="org.eclipse.ecf.containerFactory">
+      <containerFactory
+            class="org.eclipse.ecf.internal.provider.restlet.container.RestletClientContainerInstantiator"
+            hidden="false"
+            name="ecf.container.restlet.client"
+            server="true">
+      </containerFactory>
+   </extension>   
+</plugin>

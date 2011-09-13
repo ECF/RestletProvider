@@ -1,0 +1,14 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: %bundle.name
+Bundle-SymbolicName: org.eclipse.ecf.examples.remoteservice.restlet.hello.host
+Bundle-Version: 1.0.0.qualifier
+Bundle-Vendor: %bundle.provider
+Bundle-RequiredExecutionEnvironment: J2SE-1.5
+Bundle-Localization: bundle
+Import-Package: org.eclipse.ecf.examples.remoteservice.restlet.hello,
+ org.eclipselabs.restlet
+Export-Package: org.eclipse.ecf.examples.internal.remoteservice.restlet.hello.host;x-internal:=true
+Service-Component: OSGI-INF/application.xml, OSGI-INF/hello.xml, OSGI-INF/router.xml
+Require-Bundle: org.restlet-jee;bundle-version="2.1.0"
+

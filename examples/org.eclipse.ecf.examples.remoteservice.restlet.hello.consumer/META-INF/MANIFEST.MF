@@ -1,0 +1,14 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: ECF Restlet Hello Example Consumer
+Bundle-Activator: org.eclipse.ecf.examples.internal.remoteservice.restlet.hello.consumer.Activator
+Bundle-SymbolicName: org.eclipse.ecf.examples.remoteservice.restlet.hello.consumer;singleton:=true
+Bundle-Version: 1.0.0.qualifier
+Bundle-Vendor: Eclipse.org
+Bundle-RequiredExecutionEnvironment: J2SE-1.5
+Import-Package: org.eclipse.ecf.examples.remoteservice.restlet.hello,
+ org.eclipse.equinox.app;version="1.1.0",
+ org.osgi.framework;version="1.6.0",
+ org.osgi.util.tracker;version="1.5.0"
+Require-Bundle: org.eclipse.equinox.common;bundle-version="3.6.0"
+Bundle-ActivationPolicy: lazy

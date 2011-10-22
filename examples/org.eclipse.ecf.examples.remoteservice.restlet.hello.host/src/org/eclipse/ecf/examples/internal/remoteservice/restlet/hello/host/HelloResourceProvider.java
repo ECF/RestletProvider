@@ -10,7 +10,7 @@
  *******************************************************************************/
 package org.eclipse.ecf.examples.internal.remoteservice.restlet.hello.host;
 
-import org.eclipselabs.restlet.ResourceProvider;
+import org.restlet.ext.osgi.ResourceProvider;
 import org.restlet.Context;
 import org.restlet.resource.Finder;
 

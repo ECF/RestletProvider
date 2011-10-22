@@ -20,9 +20,9 @@ import java.util.Iterator;
 import java.util.Map;
 
 import org.eclipse.ecf.remoteservice.internal.Activator;
-import org.eclipselabs.restlet.IApplicationProvider;
-import org.eclipselabs.restlet.IResourceProvider;
 import org.osgi.service.log.LogService;
+import org.restlet.ext.osgi.IApplicationProvider;
+import org.restlet.ext.osgi.IResourceProvider;
 
 public class RestletComponent {
 

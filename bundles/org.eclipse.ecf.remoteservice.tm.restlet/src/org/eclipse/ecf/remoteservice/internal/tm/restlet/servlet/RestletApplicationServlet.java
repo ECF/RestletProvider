@@ -18,11 +18,11 @@ import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 
 import org.eclipse.core.runtime.Assert;
-import org.eclipselabs.restlet.IApplicationProvider;
 import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.http.HttpContext;
 import org.restlet.Application;
 import org.restlet.Context;
+import org.restlet.ext.osgi.IApplicationProvider;
 import org.restlet.ext.servlet.ServerServlet;
 
 public class RestletApplicationServlet extends ServerServlet {

@@ -3,6 +3,6 @@
    <implementation class="org.eclipse.ecf.remoteservice.internal.tm.restlet.servlet.RestletComponent"/>
    <reference bind="bindHttpService" cardinality="0..1" interface="org.osgi.service.http.HttpService" name="HttpService" policy="dynamic" unbind="unbindHttpService"/>
    <reference bind="bindLogService" cardinality="0..1" interface="org.osgi.service.log.LogService" name="LogService" policy="dynamic" unbind="unbindLogService"/>
-   <reference bind="bindResourceProvider" cardinality="0..n" interface="org.eclipselabs.restlet.IResourceProvider" name="IResourceProvider" policy="dynamic" unbind="unbindResourceProvider"/>
-   <reference bind="bindApplicationProvider" cardinality="0..n" interface="org.eclipselabs.restlet.IApplicationProvider" name="IApplicationProvider" policy="dynamic" unbind="unbindApplicationProvider"/>
+   <reference bind="bindResourceProvider" cardinality="0..n" interface="org.restlet.ext.osgi.IResourceProvider" name="IResourceProvider" policy="dynamic" unbind="unbindResourceProvider"/>
+   <reference bind="bindApplicationProvider" cardinality="0..n" interface="org.restlet.ext.osgi.IApplicationProvider" name="IApplicationProvider" policy="dynamic" unbind="unbindApplicationProvider"/>
 </scr:component>

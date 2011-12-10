@@ -10,5 +10,5 @@ Import-Package: org.eclipse.ecf.examples.remoteservice.restlet.hello,
  org.restlet.ext.osgi
 Export-Package: org.eclipse.ecf.examples.internal.remoteservice.restlet.hello.host;x-internal:=true
 Service-Component: OSGI-INF/application.xml, OSGI-INF/hello.xml, OSGI-INF/router.xml
-Require-Bundle: org.restlet-osgi;bundle-version="2.1.0"
+Require-Bundle: org.restlet;bundle-version="2.1.0"
 

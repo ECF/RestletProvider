@@ -20,10 +20,10 @@ public class HelloConsumerApplication implements IApplication, ServiceTrackerCus
 	public IHelloResource addingService(
 			ServiceReference<IHelloResource> reference) {
 		IHelloResource helloResource = bundleContext.getService(reference);
-		// Call methods
-		String helloResult = helloResource.sayHello();
-		System.out.println("sayHello returned: "+helloResult);
-		
+		// call sayHello
+		System.out.println("helloResult="+helloResource.sayHello());
+	    // call getDocument
+		System.out.println("getDocumentResult="+helloResource.getDocument());
 		return helloResource;
 	}
 

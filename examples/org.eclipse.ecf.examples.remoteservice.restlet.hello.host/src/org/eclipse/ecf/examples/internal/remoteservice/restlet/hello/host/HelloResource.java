@@ -19,7 +19,7 @@ import org.restlet.resource.ServerResource;
 public class HelloResource extends ServerResource implements IHelloResource {
 	@Get("txt")
 	public String sayHello() {
-		return "Hello RESTful World";
+		return "Hello RESTful OSGi World";
 	}
 
 	@Get("html")
@@ -27,7 +27,7 @@ public class HelloResource extends ServerResource implements IHelloResource {
 		StringBuilder html = new StringBuilder();
 		html.append("<html>\n");
 		html.append("  <body>\n");
-		html.append("    <h2>Hello RESTful World</h2>\n");
+		html.append("    <h2>Hello RESTful OSGi World</h2>\n");
 		html.append("   </body>\n");
 		html.append("</html>\n");
 		return html.toString();

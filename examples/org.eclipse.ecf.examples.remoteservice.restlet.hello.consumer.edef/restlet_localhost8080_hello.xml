@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<endpoint-descriptions xmlns="http://www.osgi.org/xmlns/rsa/v1.0.0">
+  <endpoint-description>
+    <property name="ecf.endpoint.id.ns" value-type="String" value="ecf.namespace.restlet"/>
+    <property name="endpoint.framework.uuid" value-type="String" value="405f535d-2ce6-0011-1fcb-abb098f2709e"/>
+    <property name="endpoint.id" value-type="String" value="http://localhost:8080/hello"/>
+    <property name="endpoint.service.id" value-type="Long" value="0"/>
+    <property name="objectClass" value-type="String">
+      <array>
+        <value>org.eclipse.ecf.examples.remoteservice.restlet.hello.IHelloResource</value>
+      </array>
+    </property>
+    <property name="remote.configs.supported" value-type="String">
+      <array>
+        <value>ecf.container.restlet.host</value>
+      </array>
+    </property>
+    <property name="remote.intents.supported" value-type="String">
+      <array>
+        <value>restlet</value>
+        <value>passByValue</value>
+        <value>exactlyOnce</value>
+        <value>ordered</value>
+      </array>
+    </property>
+    <property name="restlet.service.exported.interfaces" value-type="String">
+      <array>
+        <value>org.eclipse.ecf.examples.remoteservice.restlet.hello.IHelloResource</value>
+      </array>
+    </property>
+    <property name="service.id" value-type="Long" value="72"/>
+    <property name="service.imported" value-type="String" value="true"/>
+    <property name="service.imported.configs" value-type="String">
+      <array>
+        <value>ecf.container.restlet.host</value>
+      </array>
+    </property>
+  </endpoint-description>
+</endpoint-descriptions>

@@ -56,7 +56,9 @@ import org.restlet.util.RouteList;
 
 public class RestletTopologyManager extends AbstractTopologyManager {
 
-	private static final boolean ADVERTISE_TO_SYSTEM_OUT = false;
+	private static final boolean ADVERTISE_TO_SYSTEM_OUT = Boolean
+			.parseBoolean(System.getProperty("ecf.container.restlet.advertisement.print",
+					"false"));
 	private static final String RESTLET_CONTAINER_HOST = "ecf.container.restlet.host";
 
 	private static Object createDummyProxy(Class<?>[] interfaces) {

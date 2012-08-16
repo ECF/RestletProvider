@@ -2,13 +2,13 @@
 <launchConfiguration type="org.eclipse.pde.ui.RuntimeWorkbench">
 <booleanAttribute key="append.args" value="true"/>
 <stringAttribute key="application" value="org.eclipse.ecf.examples.remoteservice.restlet.hello.consumer.HelloConsumerApplication"/>
-<booleanAttribute key="askclear" value="true"/>
+<booleanAttribute key="askclear" value="false"/>
 <booleanAttribute key="automaticAdd" value="false"/>
 <booleanAttribute key="automaticValidate" value="false"/>
 <stringAttribute key="bootstrap" value=""/>
 <stringAttribute key="checked" value="[NONE]"/>
-<booleanAttribute key="clearConfig" value="false"/>
-<booleanAttribute key="clearws" value="false"/>
+<booleanAttribute key="clearConfig" value="true"/>
+<booleanAttribute key="clearws" value="true"/>
 <booleanAttribute key="clearwslog" value="false"/>
 <stringAttribute key="configLocation" value="${workspace_loc}/.metadata/.plugins/org.eclipse.pde.core/Restlet Hello Consumer (edef)"/>
 <booleanAttribute key="default" value="false"/>
@@ -18,7 +18,7 @@
 <stringAttribute key="org.eclipse.jdt.launching.SOURCE_PATH_PROVIDER" value="org.eclipse.pde.ui.workbenchClasspathProvider"/>
 <stringAttribute key="pde.version" value="3.3"/>
 <stringAttribute key="product" value="org.eclipse.sdk.ide"/>
-<stringAttribute key="selected_target_plugins" value="javax.servlet@default:default,org.apache.ant@default:default,org.apache.commons.codec@default:default,org.apache.commons.httpclient@default:default,org.apache.commons.logging@default:default,org.apache.felix.gogo.command@default:default,org.apache.felix.gogo.runtime@default:default,org.apache.felix.gogo.shell@default:default,org.eclipse.core.contenttype@default:default,org.eclipse.core.jobs@default:default,org.eclipse.core.runtime@3:true,org.eclipse.equinox.app@default:default,org.eclipse.equinox.common@2:true,org.eclipse.equinox.concurrent@default:default,org.eclipse.equinox.console@default:default,org.eclipse.equinox.preferences@default:default,org.eclipse.equinox.registry@default:default,org.eclipse.osgi.services@default:default,org.eclipse.osgi@-1:true,org.restlet@default:default"/>
+<stringAttribute key="selected_target_plugins" value="javax.servlet@default:default,org.apache.commons.codec@default:default,org.apache.commons.httpclient@default:default,org.apache.commons.logging@default:default,org.apache.felix.gogo.command@default:default,org.apache.felix.gogo.runtime@default:default,org.apache.felix.gogo.shell@default:default,org.eclipse.core.contenttype@default:default,org.eclipse.core.jobs@default:default,org.eclipse.core.runtime@3:true,org.eclipse.equinox.app@default:default,org.eclipse.equinox.common@2:true,org.eclipse.equinox.concurrent@default:default,org.eclipse.equinox.console@default:default,org.eclipse.equinox.preferences@default:default,org.eclipse.equinox.registry@default:default,org.eclipse.osgi.services@default:default,org.eclipse.osgi@-1:true,org.restlet@default:default"/>
 <stringAttribute key="selected_workspace_plugins" value="org.eclipse.ecf.discovery@default:default,org.eclipse.ecf.examples.remoteservice.restlet.hello.consumer.edef@default:default,org.eclipse.ecf.examples.remoteservice.restlet.hello.consumer@default:default,org.eclipse.ecf.examples.remoteservice.restlet.hello@default:default,org.eclipse.ecf.identity@default:default,org.eclipse.ecf.osgi.services.distribution@4:true,org.eclipse.ecf.osgi.services.remoteserviceadmin.proxy@default:default,org.eclipse.ecf.osgi.services.remoteserviceadmin@default:default,org.eclipse.ecf.provider.restlet@default:default,org.eclipse.ecf.remoteservice.rest@default:default,org.eclipse.ecf.remoteservice@default:default,org.eclipse.ecf.ssl@default:false,org.eclipse.ecf@default:default,org.eclipse.osgi.services.remoteserviceadmin@default:default"/>
 <booleanAttribute key="show_selected_only" value="false"/>
 <stringAttribute key="templateConfig" value="${target_home}\configuration\config.ini"/>

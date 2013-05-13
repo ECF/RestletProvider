@@ -16,7 +16,6 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Dictionary;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -205,7 +204,6 @@ public class RestletTopologyManager extends AbstractTopologyManager {
 		return result;
 	}
 
-	@SuppressWarnings("unchecked")
 	private Collection<ExportRegistration> exportRestletService(
 			RestletApplicationServlet restletApplicationServlet,
 			@SuppressWarnings("rawtypes") ServiceRegistration localRSRegistration,
@@ -220,44 +218,8 @@ public class RestletTopologyManager extends AbstractTopologyManager {
 		// set of available URIs
 		this.hostContainerSelector.addRemoteServiceURI(localRSReference, uri);
 
-		// get RSA
-		org.osgi.service.remoteserviceadmin.RemoteServiceAdmin rsa = getRemoteServiceAdmin();
 		// Use RSA to export the service
-		Collection<org.osgi.service.remoteserviceadmin.ExportRegistration> registrations = rsa
-				.exportService(localRSReference, overridingProperties);
-
-		if (registrations == null || registrations.size() == 0) {
-			logError("exportRestletService", //$NON-NLS-1$
-					"No export registrations created by RemoteServiceAdmin=" //$NON-NLS-1$
-							+ rsa + ".  ServiceReference=" + localRSReference //$NON-NLS-1$
-							+ " NOT EXPORTED"); //$NON-NLS-1$
-			return Collections.EMPTY_LIST;
-		}
-
-		List<EndpointDescription> endpointDescriptions = new ArrayList<EndpointDescription>();
-
-		for (org.osgi.service.remoteserviceadmin.ExportRegistration exportRegistration : registrations) {
-			// If they are invalid report as such
-			Throwable t = exportRegistration.getException();
-			if (t != null)
-				handleInvalidExportRegistration(exportRegistration, t);
-			else {
-				endpointDescriptions
-						.add((EndpointDescription) exportRegistration
-								.getExportReference().getExportedEndpoint());
-				synchronized (exportedRegistrations) {
-					exportedRegistrations.add(exportRegistration);
-				}
-				// Also add registration to RestletApplicationServlet for
-				// unexport
-				restletApplicationServlet
-						.addServiceRegistration(localRSRegistration);
-			}
-		}
-		// advertise valid exported registrations
-		advertiseEndpointDescriptions(endpointDescriptions);
-
-		return registrations;
+		return getRemoteServiceAdmin().exportService(localRSReference, overridingProperties);
 	}
 
 	private Class<?>[] getExportedInterfaces(Class<?>[] classes,
@@ -282,13 +244,7 @@ public class RestletTopologyManager extends AbstractTopologyManager {
 		ServiceRegistration<?>[] regs = restletApplicationServlet
 				.getServiceRegistrations();
 		for (int i = 0; i < regs.length; i++) {
-			// unexport first
-			Collection<EndpointDescription> unexportEndpoints = unexportService(regs[i]
-					.getReference());
-			// Then unadvertise
-			for (EndpointDescription endpointDescription : unexportEndpoints)
-				unadvertiseEndpointDescription(endpointDescription);
-			// finally unregister local service
+			//  unregister sservice
 			regs[i].unregister();
 		}
 	}
@@ -325,6 +281,20 @@ public class RestletTopologyManager extends AbstractTopologyManager {
 				public IStatus unadvertise(
 						EndpointDescription endpointDescription) {
 					publish(endpointDescription, false);
+					return Status.OK_STATUS;
+				}
+
+				@Override
+				public IStatus advertise(
+						org.osgi.service.remoteserviceadmin.EndpointDescription endpointDescription) {
+					// TODO Auto-generated method stub
+					return Status.OK_STATUS;
+				}
+
+				@Override
+				public IStatus unadvertise(
+						org.osgi.service.remoteserviceadmin.EndpointDescription endpointDescription) {
+					// TODO Auto-generated method stub
 					return Status.OK_STATUS;
 				}
 			};

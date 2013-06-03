@@ -4,7 +4,7 @@ Bundle-Name: %bundle.name
 Bundle-SymbolicName: org.eclipse.ecf.remoteservice.tm.restlet;singleton:=true
 Bundle-Vendor: %bundle.provider
 Bundle-Version: 1.0.0.qualifier
-Bundle-Activator: org.eclipse.ecf.remoteservice.internal.Activator
+Bundle-Activator: org.eclipse.ecf.remoteservice.internal.tm.restlet.servlet.Activator
 Bundle-ActivationPolicy: lazy
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Import-Package: javax.servlet,
@@ -22,6 +22,5 @@ Service-Component: OSGI-INF/restlet.xml
 Require-Bundle: org.eclipse.equinox.common;bundle-version="3.6.0",
  org.restlet.ext.osgi;bundle-version="0.5.0",
  org.restlet;bundle-version="2.1.0"
-Export-Package: org.eclipse.ecf.remoteservice.internal;x-internal:=true,
- org.eclipse.ecf.remoteservice.internal.tm.restlet.servlet;x-internal:=true
 Bundle-Localization: bundle
+

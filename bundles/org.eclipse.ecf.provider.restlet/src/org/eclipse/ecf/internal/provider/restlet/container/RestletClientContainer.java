@@ -6,6 +6,7 @@
  *
  * Contributors:
  *   Composent, Inc. - initial API and implementation
+ *   Markus Alexander Kuppe - Additions
  ******************************************************************************/
 package org.eclipse.ecf.internal.provider.restlet.container;
 
@@ -33,6 +34,7 @@ import org.eclipse.ecf.remoteservice.client.IRemoteCallable;
 import org.eclipse.ecf.remoteservice.client.IRemoteCallableRequestType;
 import org.eclipse.ecf.remoteservice.client.RemoteServiceClientRegistration;
 import org.osgi.framework.InvalidSyntaxException;
+import org.restlet.Application;
 import org.restlet.Request;
 import org.restlet.Response;
 import org.restlet.Uniform;
@@ -388,6 +390,15 @@ public class RestletClientContainer extends AbstractClientContainer {
 				}
 				return result;
 			}
+
+			@Override
+		    public org.restlet.Application getApplication() {
+		    	final Application anApplication = Activator.getOSGiApplication();
+		    	if (anApplication != null) {
+					return anApplication;
+		    	}
+		        return super.getApplication();
+		    }
 		}
 
 	}

@@ -151,6 +151,11 @@ public class RestletClientContainer extends AbstractClientContainer {
 		public Object invoke(String uri, Object[] args) throws ECFException {
 			RestletClientResource clientResource = new RestletClientResource(
 					uri);
+			// TODO Get authentication from container, something like the
+			// following where "user"/"pass" are provided by the ECF discovery
+			// container.
+			//clientResource.setChallengeResponse(ChallengeScheme.HTTP_BASIC,
+			//		"user", "pass");
 			return clientResource.invoke(annotation, args);
 		}
 

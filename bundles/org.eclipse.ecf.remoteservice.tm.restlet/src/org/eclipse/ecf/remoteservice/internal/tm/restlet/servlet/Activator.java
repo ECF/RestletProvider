@@ -7,19 +7,18 @@
  * Contributors:
  *   Composent, Inc. - initial API and implementation
  ******************************************************************************/
-package org.eclipse.ecf.remoteservice.internal;
+package org.eclipse.ecf.remoteservice.internal.tm.restlet.servlet;
 
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
+import org.osgi.framework.ServiceRegistration;
+import org.osgi.service.remoteserviceadmin.RemoteServiceAdminListener;
 
 public class Activator implements BundleActivator {
 
-	private static BundleContext context;
-
-	public static BundleContext getContext() {
-		return context;
-	}
-
+	private static Activator instance;
+	private RestletTopologyManager restletTopologyManager;
+	private ServiceRegistration<RemoteServiceAdminListener> rsaEventListenerRegistration;
 	/*
 	 * (non-Javadoc)
 	 * 
@@ -28,7 +27,9 @@ public class Activator implements BundleActivator {
 	 * )
 	 */
 	public void start(BundleContext bundleContext) throws Exception {
-		Activator.context = bundleContext;
+		instance = this;
+		this.restletTopologyManager = new RestletTopologyManager(bundleContext);
+		this.rsaEventListenerRegistration = bundleContext.registerService(RemoteServiceAdminListener.class, restletTopologyManager, null);
 	}
 
 	/*
@@ -38,7 +39,23 @@ public class Activator implements BundleActivator {
 	 * org.osgi.framework.BundleActivator#stop(org.osgi.framework.BundleContext)
 	 */
 	public void stop(BundleContext bundleContext) throws Exception {
-		Activator.context = null;
+		if (rsaEventListenerRegistration != null) {
+			rsaEventListenerRegistration.unregister();
+			rsaEventListenerRegistration = null;
+		}
+		if (restletTopologyManager != null) {
+			restletTopologyManager.close();
+			restletTopologyManager = null;
+		}
+		instance = null;
+	}
+
+	public static Activator getDefault() {
+		return instance;
+	}
+
+	public RestletTopologyManager getRestletTopologyManager() {
+		return restletTopologyManager;
 	}
 
 }

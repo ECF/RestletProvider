@@ -16,16 +16,12 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.Dictionary;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
-import org.eclipse.core.runtime.IStatus;
-import org.eclipse.core.runtime.Status;
 import org.eclipse.ecf.core.ContainerCreateException;
 import org.eclipse.ecf.core.IContainer;
 import org.eclipse.ecf.core.IContainerManager;
@@ -36,15 +32,16 @@ import org.eclipse.ecf.osgi.services.remoteserviceadmin.AbstractTopologyManager;
 import org.eclipse.ecf.osgi.services.remoteserviceadmin.EndpointDescription;
 import org.eclipse.ecf.osgi.services.remoteserviceadmin.EndpointDescriptionWriter;
 import org.eclipse.ecf.osgi.services.remoteserviceadmin.HostContainerSelector;
-import org.eclipse.ecf.osgi.services.remoteserviceadmin.IEndpointDescriptionAdvertiser;
+import org.eclipse.ecf.osgi.services.remoteserviceadmin.RemoteServiceAdmin;
 import org.eclipse.ecf.remoteservice.IRemoteServiceContainer;
 import org.eclipse.ecf.remoteservice.RemoteServiceContainer;
-import org.eclipse.ecf.remoteservice.internal.Activator;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.Constants;
 import org.osgi.framework.ServiceReference;
 import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.remoteserviceadmin.ExportRegistration;
+import org.osgi.service.remoteserviceadmin.RemoteServiceAdminEvent;
+import org.osgi.service.remoteserviceadmin.RemoteServiceAdminListener;
 import org.restlet.Application;
 import org.restlet.Restlet;
 import org.restlet.resource.Finder;
@@ -54,11 +51,8 @@ import org.restlet.routing.Router;
 import org.restlet.routing.TemplateRoute;
 import org.restlet.util.RouteList;
 
-public class RestletTopologyManager extends AbstractTopologyManager {
+public class RestletTopologyManager extends AbstractTopologyManager implements RemoteServiceAdminListener {
 
-	private static final boolean ADVERTISE_TO_SYSTEM_OUT = Boolean
-			.parseBoolean(System.getProperty("ecf.container.restlet.advertisement.print",
-					"false"));
 	private static final String RESTLET_CONTAINER_HOST = "ecf.container.restlet.host";
 
 	private static Object createDummyProxy(Class<?>[] interfaces) {
@@ -71,34 +65,26 @@ public class RestletTopologyManager extends AbstractTopologyManager {
 				});
 	}
 
-	private RestletComponent restletComponent;
 	private RestletHostContainerSelector hostContainerSelector;
+	private Map<String, Map<?, ?>> resourceProviderProperties = new HashMap<String, Map<?, ?>>();
 
-	public RestletTopologyManager(BundleContext context,
-			RestletComponent component) {
+	void addResourceProviderProperties(String path, Map<?,?> properties) {
+		resourceProviderProperties.put(path, properties);
+	}
+	void removeResourceProviderProperties(String path) {
+		resourceProviderProperties.remove(path);
+	}
+	
+	Map<?,?> getResourceProviderProperties(String path) {
+		return resourceProviderProperties.get(path);
+	}
+	
+	public RestletTopologyManager(BundleContext context) {
 		super(context);
 		this.hostContainerSelector = new RestletHostContainerSelector();
-		this.restletComponent = component;
 	}
 
-	@SuppressWarnings("rawtypes")
-	private Dictionary createLocalRemoteServiceProperties(
-			RestletApplicationServlet restletApplicationServlet, String path,
-			Class<?>[] exportedInterfaces, Map<?, ?> resourceProviderProperties) {
-		return null;
-	}
-
-	@SuppressWarnings({ "rawtypes", "unchecked" })
-	private ServiceRegistration registerLocalRemoteService(
-			Class<?>[] exportedInterfaces, Dictionary properties) {
-		String[] eiNames = new String[exportedInterfaces.length];
-		for (int i = 0; i < eiNames.length; i++)
-			eiNames[i] = exportedInterfaces[i].getName();
-		return Activator.getContext().registerService(eiNames,
-				createDummyProxy(exportedInterfaces), properties);
-	}
-
-	public void exportRemoteApplicationServlet(
+	void exportRemoteApplicationServlet(
 			RestletApplicationServlet restletApplicationServlet) {
 		// Get restlet application
 		Application application = restletApplicationServlet.getApplication();
@@ -117,8 +103,7 @@ public class RestletTopologyManager extends AbstractTopologyManager {
 					Class<?> targetClass = finder.getTargetClass();
 					if (targetClass != null) {
 						Class<?>[] interfaces = targetClass.getInterfaces();
-						Map<?, ?> resourceProviderProperties = restletComponent
-								.getResourceProviderProperties(path);
+						Map<?, ?> resourceProviderProperties = getResourceProviderProperties(path);
 						if (resourceProviderProperties == null) {
 							trace("exportRemoteApplicationServlet",
 									"resource path=" + path
@@ -142,14 +127,12 @@ public class RestletTopologyManager extends AbstractTopologyManager {
 											+ " has no exported interfaces");
 							continue;
 						}
+						String[] eiNames = new String[exportedInterfaces.length];
+						for (int i = 0; i < eiNames.length; i++)
+							eiNames[i] = exportedInterfaces[i].getName();
 						@SuppressWarnings("rawtypes")
-						Dictionary localRemoteServiceProperties = createLocalRemoteServiceProperties(
-								restletApplicationServlet, path,
-								exportedInterfaces, resourceProviderProperties);
-						@SuppressWarnings("rawtypes")
-						ServiceRegistration localRemoteServiceReg = registerLocalRemoteService(
-								exportedInterfaces,
-								localRemoteServiceProperties);
+						ServiceRegistration localRemoteServiceReg = getContext().registerService(eiNames,
+						createDummyProxy(exportedInterfaces), null);
 						exportRestletService(restletApplicationServlet,
 								localRemoteServiceReg,
 								restletApplicationServlet.getFullURI(path),
@@ -205,7 +188,6 @@ public class RestletTopologyManager extends AbstractTopologyManager {
 		return result;
 	}
 
-	@SuppressWarnings("unchecked")
 	private Collection<ExportRegistration> exportRestletService(
 			RestletApplicationServlet restletApplicationServlet,
 			@SuppressWarnings("rawtypes") ServiceRegistration localRSRegistration,
@@ -220,44 +202,8 @@ public class RestletTopologyManager extends AbstractTopologyManager {
 		// set of available URIs
 		this.hostContainerSelector.addRemoteServiceURI(localRSReference, uri);
 
-		// get RSA
-		org.osgi.service.remoteserviceadmin.RemoteServiceAdmin rsa = getRemoteServiceAdmin();
 		// Use RSA to export the service
-		Collection<org.osgi.service.remoteserviceadmin.ExportRegistration> registrations = rsa
-				.exportService(localRSReference, overridingProperties);
-
-		if (registrations == null || registrations.size() == 0) {
-			logError("exportRestletService", //$NON-NLS-1$
-					"No export registrations created by RemoteServiceAdmin=" //$NON-NLS-1$
-							+ rsa + ".  ServiceReference=" + localRSReference //$NON-NLS-1$
-							+ " NOT EXPORTED"); //$NON-NLS-1$
-			return Collections.EMPTY_LIST;
-		}
-
-		List<EndpointDescription> endpointDescriptions = new ArrayList<EndpointDescription>();
-
-		for (org.osgi.service.remoteserviceadmin.ExportRegistration exportRegistration : registrations) {
-			// If they are invalid report as such
-			Throwable t = exportRegistration.getException();
-			if (t != null)
-				handleInvalidExportRegistration(exportRegistration, t);
-			else {
-				endpointDescriptions
-						.add((EndpointDescription) exportRegistration
-								.getExportReference().getExportedEndpoint());
-				synchronized (exportedRegistrations) {
-					exportedRegistrations.add(exportRegistration);
-				}
-				// Also add registration to RestletApplicationServlet for
-				// unexport
-				restletApplicationServlet
-						.addServiceRegistration(localRSRegistration);
-			}
-		}
-		// advertise valid exported registrations
-		advertiseEndpointDescriptions(endpointDescriptions);
-
-		return registrations;
+		return getRemoteServiceAdmin().exportService(localRSReference, overridingProperties);
 	}
 
 	private Class<?>[] getExportedInterfaces(Class<?>[] classes,
@@ -276,60 +222,15 @@ public class RestletTopologyManager extends AbstractTopologyManager {
 		return result.toArray(new Class<?>[result.size()]);
 	}
 
-	public void unexportRemoteApplicationServlet(
+	void unexportRemoteApplicationServlet(
 			RestletApplicationServlet restletApplicationServlet) {
 		// First get service registrations from remoteApplicationServlet
 		ServiceRegistration<?>[] regs = restletApplicationServlet
 				.getServiceRegistrations();
 		for (int i = 0; i < regs.length; i++) {
-			// unexport first
-			Collection<EndpointDescription> unexportEndpoints = unexportService(regs[i]
-					.getReference());
-			// Then unadvertise
-			for (EndpointDescription endpointDescription : unexportEndpoints)
-				unadvertiseEndpointDescription(endpointDescription);
-			// finally unregister local service
+			//  unregister sservice
 			regs[i].unregister();
 		}
-	}
-
-	protected IEndpointDescriptionAdvertiser getEndpointDescriptionAdvertiser(
-			EndpointDescription endpointDescription) {
-		if (ADVERTISE_TO_SYSTEM_OUT) {
-			final EndpointDescriptionWriter writer = new EndpointDescriptionWriter();
-			return new IEndpointDescriptionAdvertiser() {
-
-				private void publish(EndpointDescription endpointDescription,
-						boolean advertise) {
-					try {
-						StringWriter sr = new StringWriter();
-						sr.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>")
-								.append("\n");
-						writer.writeEndpointDescriptions(
-								sr,
-								new EndpointDescription[] { (EndpointDescription) endpointDescription });
-						System.out.println(advertise ? "ADVERTISE"
-								: "UNADVERTISE");
-						System.out.print(sr.toString());
-					} catch (IOException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
-				}
-
-				public IStatus advertise(EndpointDescription endpointDescription) {
-					publish(endpointDescription, true);
-					return Status.OK_STATUS;
-				}
-
-				public IStatus unadvertise(
-						EndpointDescription endpointDescription) {
-					publish(endpointDescription, false);
-					return Status.OK_STATUS;
-				}
-			};
-		} else
-			return super.getEndpointDescriptionAdvertiser(endpointDescription);
 	}
 
 	class RestletHostContainerSelector extends HostContainerSelector {
@@ -400,6 +301,68 @@ public class RestletTopologyManager extends AbstractTopologyManager {
 				}
 			}
 			return new RemoteServiceContainer(container);
+		}
+	}
+	
+	private void publishEndpointDescription(EndpointDescription endpointDescription, boolean advertise) {
+		try {
+			final EndpointDescriptionWriter writer = new EndpointDescriptionWriter();
+			StringWriter sr = new StringWriter();
+			sr.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>")
+					.append("\n");
+			writer.writeEndpointDescriptions(
+					sr,
+					new EndpointDescription[] { (EndpointDescription) endpointDescription });
+			System.out.println(advertise ? "ADVERTISE"
+					: "UNADVERTISE");
+			System.out.print(sr.toString());
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+
+	@Override
+	protected void advertiseEndpointDescription(
+			EndpointDescription endpointDescription) {
+		publishEndpointDescription(endpointDescription,true);
+	}
+	
+	@Override
+	protected void unadvertiseEndpointDescription(
+			EndpointDescription endpointDescription) {
+		publishEndpointDescription(endpointDescription,false);
+	}
+	
+	@Override
+	public void remoteAdminEvent(RemoteServiceAdminEvent event) {
+		if (!(event instanceof RemoteServiceAdmin.RemoteServiceAdminEvent))
+			return;
+		RemoteServiceAdmin.RemoteServiceAdminEvent rsaEvent = (RemoteServiceAdmin.RemoteServiceAdminEvent) event;
+
+		int eventType = event.getType();
+		EndpointDescription endpointDescription = rsaEvent
+				.getEndpointDescription();
+
+		switch (eventType) {
+		case RemoteServiceAdminEvent.EXPORT_REGISTRATION:
+			advertiseEndpointDescription(endpointDescription);
+			break;
+		case RemoteServiceAdminEvent.EXPORT_UNREGISTRATION:
+			unadvertiseEndpointDescription(endpointDescription);
+			break;
+		case RemoteServiceAdminEvent.EXPORT_ERROR:
+			logError("handleExportError", "Export error with event=" + rsaEvent); //$NON-NLS-1$ //$NON-NLS-2$
+			break;
+		case RemoteServiceAdminEvent.IMPORT_REGISTRATION:
+			break;
+		case RemoteServiceAdminEvent.IMPORT_UNREGISTRATION:
+			break;
+		case RemoteServiceAdminEvent.IMPORT_ERROR:
+			break;
+		default:
+			logWarning(
+					"handleRemoteAdminEvent", "RemoteServiceAdminEvent=" + rsaEvent + " received with unrecognized type"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 		}
 	}
 

@@ -9,6 +9,7 @@
  ******************************************************************************/
 package org.eclipse.ecf.internal.provider.restlet.container;
 
+import java.io.IOException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
@@ -337,7 +338,11 @@ public class RestletClientContainer extends AbstractClientContainer {
 
 								setOnResponse(callback);
 							} else {
-								requestEntity = toRepresentation(args[i], null);
+								try {
+									requestEntity = toRepresentation(args[i], null);
+								} catch (IOException e) {
+									throw new ECFException("Exception converting argument="+i+" to request entity",e);
+								}
 							}
 						}
 					}
@@ -352,9 +357,14 @@ public class RestletClientContainer extends AbstractClientContainer {
 					request.setEntity(requestEntity);
 
 					// Updates the client preferences
-					List<org.restlet.representation.Variant> responseVariants = annotation
-							.getResponseVariants(getMetadataService(),
-									getConverterService());
+					List<org.restlet.representation.Variant> responseVariants = null;
+					try {
+						responseVariants = annotation
+								.getResponseVariants(getMetadataService(),
+										getConverterService());
+					} catch (IOException e) {
+						throw new ECFException("Exception getting response variants for request",e);
+					}
 
 					if (responseVariants != null) {
 						request.setClientInfo(new ClientInfo(responseVariants));

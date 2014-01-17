@@ -18,8 +18,9 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Set;
 
-import org.eclipse.ecf.remoteservice.internal.Activator;
+import org.osgi.framework.BundleContext;
 import org.osgi.service.log.LogService;
 import org.restlet.ext.osgi.IApplicationProvider;
 import org.restlet.ext.osgi.IResourceProvider;
@@ -47,17 +48,55 @@ public class RestletComponent {
 		}
 
 		public org.osgi.service.http.HttpService getHttpService() {
-			return this.httpService;
+			return httpService;
 		}
 
 		@SuppressWarnings("rawtypes")
 		public Map getProperties() {
-			return this.properties;
+			return properties;
+		}
+
+		public void registerApplicationProvider(ApplicationProvider ap) {
+			RestletApplicationServlet restletApplicationServlet = new RestletApplicationServlet(
+					getRemoteUrlPrefix(ap), ap);
+			String alias = restletApplicationServlet.getAlias();
+			try {
+				getHttpService().registerServlet(alias,
+						restletApplicationServlet,
+						restletApplicationServlet.getInitParams(),
+						restletApplicationServlet.getContext());
+				registeredServlets.put(alias, restletApplicationServlet);
+				// Now export
+				restletTopologyManager
+						.exportRemoteApplicationServlet(restletApplicationServlet);
+			} catch (Exception e) {
+				if (logService != null)
+					logService.log(LogService.LOG_ERROR,
+							"Failed to register the application servlet at alias: '"
+									+ alias + "'", e);
+			}
+		}
+
+		public void unregisterApplicationProvider(ApplicationProvider ap) {
+			String alias = ap.getApplicationProvider().getAlias();
+			RestletApplicationServlet restletApplicationServlet = registeredServlets
+					.remove(alias);
+			// unregister servlet
+			if (restletApplicationServlet != null) {
+				// unexport
+				restletTopologyManager
+						.unexportRemoteApplicationServlet(restletApplicationServlet);
+				try {
+					getHttpService().unregister(alias);
+				} catch (Throwable t) {
+					if (logService != null)
+						logService.log(LogService.LOG_ERROR,
+								"Failed to unregister the application servlet at alias: '"
+										+ alias + "'", t);
+				}
+			}
 		}
 	}
-
-	private HttpService httpService;
-	private LogService logService;
 
 	class ApplicationProvider {
 		private IApplicationProvider applicationProvider;
@@ -71,29 +110,48 @@ public class RestletComponent {
 		}
 
 		public IApplicationProvider getApplicationProvider() {
-			return this.applicationProvider;
+			return applicationProvider;
 		}
 
 		@SuppressWarnings("rawtypes")
 		public Map getProperties() {
-			return this.properties;
+			return properties;
 		}
 	}
 
-	private HashSet<ApplicationProvider> applicationProviders = new HashSet<ApplicationProvider>();
+	private HttpService httpService;
+	private LogService logService;
 
+	private Set<ApplicationProvider> applicationProviders = Collections
+			.synchronizedSet(new HashSet<ApplicationProvider>());
 	private Map<String, RestletApplicationServlet> registeredServlets = Collections
 			.synchronizedMap(new HashMap<String, RestletApplicationServlet>());
-	private Object restletTopologyManagerLock = new Object();
 	private RestletTopologyManager restletTopologyManager;
+	private boolean active = false;
+
+	public RestletComponent() {
+		restletTopologyManager = Activator.getDefault()
+				.getRestletTopologyManager();
+	}
+
+	void activate(BundleContext context) {
+		for (ApplicationProvider ap : applicationProviders)
+			httpService.registerApplicationProvider(ap);
+		active = true;
+	}
+
+	void deactivate(BundleContext context) {
+		for (ApplicationProvider ap : applicationProviders)
+			httpService.unregisterApplicationProvider(ap);
+		active = false;
+	}
 
 	void bindLogService(LogService logService) {
 		this.logService = logService;
 	}
 
 	void unbindLogService(LogService logService) {
-		if (this.logService == logService)
-			this.logService = null;
+		this.logService = null;
 	}
 
 	void bindApplicationProvider(IApplicationProvider applicationProvider,
@@ -101,80 +159,53 @@ public class RestletComponent {
 		ApplicationProvider ap = new ApplicationProvider(applicationProvider,
 				properties);
 		applicationProviders.add(ap);
-		if (httpService != null)
-			registerAndExport(ap);
-	}
-
-	private ApplicationProvider removeApplicationProvider(
-			IApplicationProvider applicationProvider) {
-		for (Iterator<ApplicationProvider> i = applicationProviders.iterator(); i
-				.hasNext();) {
-			ApplicationProvider ap = i.next();
-			IApplicationProvider iap = ap.getApplicationProvider();
-			if (iap == applicationProvider) {
-				i.remove();
-				return ap;
-			}
-		}
-		return null;
+		if (active)
+			httpService.registerApplicationProvider(ap);
 	}
 
 	void unbindApplicationProvider(IApplicationProvider applicationProvider) {
-		ApplicationProvider ap = removeApplicationProvider(applicationProvider);
-		if (httpService != null)
-			unregisterServletAndUnexport(ap);
+		synchronized (applicationProviders) {
+			ApplicationProvider removed = null;
+			for (Iterator<ApplicationProvider> i = applicationProviders
+					.iterator(); i.hasNext();) {
+				ApplicationProvider ap = i.next();
+				if (ap.getApplicationProvider() == applicationProvider) {
+					i.remove();
+					removed = ap;
+					break;
+				}
+			}
+			if (removed != null)
+				httpService.unregisterApplicationProvider(removed);
+		}
 	}
-
-	private Map<String, Map<?, ?>> resourceProviderProperties = new HashMap<String, Map<?, ?>>();
 
 	void bindResourceProvider(IResourceProvider resourceProvider,
 			Map<?, ?> rpProperties) {
-		if (resourceProvider != null
-				&& rpProperties
-						.get(RESTLET_SERVICE_EXPORTED_INTERFACES) != null) {
+		if (rpProperties.get(RESTLET_SERVICE_EXPORTED_INTERFACES) != null) {
 			String[] paths = resourceProvider.getPaths();
 			if (paths != null)
 				for (int i = 0; i < paths.length; i++)
-					resourceProviderProperties.put(paths[i], rpProperties);
+					restletTopologyManager.addResourceProviderProperties(
+							paths[i], rpProperties);
 		}
 	}
 
 	void unbindResourceProvider(IResourceProvider resourceProvider) {
-		if (resourceProvider != null) {
-			String[] paths = resourceProvider.getPaths();
-			if (paths != null)
-				for (int i = 0; i < paths.length; i++)
-					resourceProviderProperties.remove(paths[i]);
-		}
+		String[] paths = resourceProvider.getPaths();
+		if (paths != null)
+			for (int i = 0; i < paths.length; i++)
+				restletTopologyManager
+						.removeResourceProviderProperties(paths[i]);
 	}
 
 	void bindHttpService(org.osgi.service.http.HttpService httpService,
 			@SuppressWarnings("rawtypes") Map httpServiceProperties) {
 		this.httpService = new HttpService(httpService, httpServiceProperties);
-		for (ApplicationProvider applicationProvider : applicationProviders)
-			registerAndExport(applicationProvider);
-	}
-
-	private org.osgi.service.http.HttpService getHttpService() {
-		return this.httpService.getHttpService();
 	}
 
 	void unbindHttpService(org.osgi.service.http.HttpService httpService) {
-		if (getHttpService() == httpService) {
-			for (ApplicationProvider applicationProvider : applicationProviders)
-				unregisterServletAndUnexport(applicationProvider);
-			this.httpService = null;
-		}
-	}
-
-	private RestletTopologyManager getRestletTopologyManager() {
-		synchronized (restletTopologyManagerLock) {
-			if (restletTopologyManager == null) {
-				restletTopologyManager = new RestletTopologyManager(
-						Activator.getContext(), this);
-			}
-		}
-		return restletTopologyManager;
+		this.httpService = null;
 	}
 
 	private String getHost(@SuppressWarnings("rawtypes") Map properties) {
@@ -238,7 +269,7 @@ public class RestletComponent {
 		return map;
 	}
 
-	protected String getRemoteUrlPrefix(ApplicationProvider applicationProvider) {
+	private String getRemoteUrlPrefix(ApplicationProvider applicationProvider) {
 		String result = null;
 		// First check http service
 		@SuppressWarnings("rawtypes")
@@ -260,55 +291,6 @@ public class RestletComponent {
 		if (apInitUrlPrefix != null)
 			result = apInitUrlPrefix;
 		return result;
-	}
-
-	private void registerAndExport(ApplicationProvider applicationProvider) {
-		// create RemoteApplicationSevlet
-		RestletApplicationServlet restletApplicationServlet = new RestletApplicationServlet(
-				getRemoteUrlPrefix(applicationProvider), applicationProvider);
-
-		String alias = restletApplicationServlet.getAlias();
-		try {
-			getHttpService().registerServlet(alias, restletApplicationServlet,
-					restletApplicationServlet.getInitParams(),
-					restletApplicationServlet.getContext());
-			registeredServlets.put(alias, restletApplicationServlet);
-			// Now export
-			getRestletTopologyManager().exportRemoteApplicationServlet(
-					restletApplicationServlet);
-		} catch (Exception e) {
-			if (logService != null)
-				logService.log(LogService.LOG_ERROR,
-						"Failed to register the application servlet at alias: '"
-								+ alias + "'", e);
-		}
-	}
-
-	private void unregisterServletAndUnexport(
-			ApplicationProvider applicationProvider) {
-
-		String alias = applicationProvider.getApplicationProvider().getAlias();
-		RestletApplicationServlet restletApplicationServlet = registeredServlets
-				.remove(alias);
-		// unregister servlet
-		if (restletApplicationServlet != null) {
-			// unexport/unadvertise
-			getRestletTopologyManager().unexportRemoteApplicationServlet(
-					restletApplicationServlet);
-			try {
-				getHttpService().unregister(alias);
-			} catch (Throwable t) {
-				if (logService != null)
-					logService.log(LogService.LOG_ERROR,
-							"Failed to unregister the application servlet at alias: '"
-									+ alias + "'", t);
-			}
-		}
-
-	}
-
-	public Map<?, ?> getResourceProviderProperties(String path) {
-		return resourceProviderProperties.get(path);
 	}
 
 }

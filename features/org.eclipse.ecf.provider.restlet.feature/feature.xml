@@ -17,12 +17,6 @@
       [Enter License Description here.]
    </license>
 
-   <requires>
-      <import feature="org.restlet-osgi" version="2.1.0.snapshotv20111019-2200" match="greaterOrEqual"/>
-      <import feature="org.restlet.ext.osgi.servlet.feature" version="0.5.0.201110131235" match="greaterOrEqual"/>
-      <import feature="org.restlet.ext.servlet-osgi" version="2.1.0.snapshotv20111019-2200" match="greaterOrEqual"/>
-   </requires>
-
    <plugin
          id="org.eclipse.ecf.provider.restlet"
          download-size="0"
@@ -32,6 +26,34 @@
 
    <plugin
          id="org.eclipse.ecf.remoteservice.tm.restlet"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
+
+   <plugin
+         id="org.restlet"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
+
+   <plugin
+         id="org.restlet.ext.osgi"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
+
+   <plugin
+         id="org.restlet.ext.servlet"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
+
+   <plugin
+         id="javax.servlet"
          download-size="0"
          install-size="0"
          version="0.0.0"

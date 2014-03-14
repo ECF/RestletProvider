@@ -304,7 +304,7 @@ public class RestletTopologyManager extends AbstractTopologyManager implements R
 		}
 	}
 	
-	private void publishEndpointDescription(EndpointDescription endpointDescription, boolean advertise) {
+	private void publishEndpointDescription(org.osgi.service.remoteserviceadmin.EndpointDescription endpointDescription, boolean advertise) {
 		try {
 			final EndpointDescriptionWriter writer = new EndpointDescriptionWriter();
 			StringWriter sr = new StringWriter();
@@ -324,13 +324,12 @@ public class RestletTopologyManager extends AbstractTopologyManager implements R
 
 	@Override
 	protected void advertiseEndpointDescription(
-			EndpointDescription endpointDescription) {
+			org.osgi.service.remoteserviceadmin.EndpointDescription endpointDescription) {
 		publishEndpointDescription(endpointDescription,true);
 	}
-	
 	@Override
 	protected void unadvertiseEndpointDescription(
-			EndpointDescription endpointDescription) {
+			org.osgi.service.remoteserviceadmin.EndpointDescription endpointDescription) {
 		publishEndpointDescription(endpointDescription,false);
 	}
 	

@@ -8,19 +8,17 @@ Bundle-Activator: org.eclipse.ecf.remoteservice.internal.tm.restlet.servlet.Acti
 Bundle-ActivationPolicy: lazy
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Import-Package: javax.servlet,
- org.eclipse.ecf.core;version="3.0.0",
- org.eclipse.ecf.core.identity;version="3.2.0",
- org.eclipse.ecf.osgi.services.remoteserviceadmin;version="1.0.0",
- org.eclipse.ecf.remoteservice;version="6.0.0",
  org.osgi.framework;version="1.3.0",
  org.osgi.service.http;version="1.2.1",
- org.osgi.service.log;version="1.3.0",
- org.osgi.service.remoteserviceadmin;version="1.0",
- org.restlet.ext.osgi,
- org.restlet.ext.servlet
+ org.osgi.service.log;version="1.3.0"
 Service-Component: OSGI-INF/restlet.xml
-Require-Bundle: org.eclipse.equinox.common;bundle-version="3.6.0",
+Require-Bundle: org.eclipse.equinox.common,
  org.restlet.ext.osgi;bundle-version="0.5.0",
- org.restlet;bundle-version="2.1.0"
+ org.restlet;bundle-version="2.1.0",
+ org.eclipse.osgi.services.remoteserviceadmin,
+ org.eclipse.ecf,
+ org.eclipse.ecf.remoteservice,
+ org.eclipse.ecf.osgi.services.remoteserviceadmin,
+ org.restlet.ext.servlet;bundle-version="2.2.0"
 Bundle-Localization: bundle
 
